@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.AnkiAppAndroid.ui.screens.CardsScreen
+import com.AnkiAppAndroid.ui.screens.EditBaralhoScreen
 import com.AnkiAppAndroid.ui.screens.HomeScreen
 import com.AnkiAppAndroid.ui.viewmodel.BaralhoViewModel
 
@@ -25,6 +26,9 @@ fun AppNavHost(
                 viewModel = viewModel,
                 onBaralhoClick = { baralhoId ->
                     navController.navigate(Screen.CardsScreen.createRoute(baralhoId))
+                },
+                onEditClick = { baralhoId ->
+                    navController.navigate(Screen.EditBaralhoScreen.createRoute(baralhoId))
                 }
             )
         }
@@ -39,6 +43,22 @@ fun AppNavHost(
         ) { backStackEntry ->
             val baralhoId = backStackEntry.arguments?.getLong("baralhoId") ?: 0L
             CardsScreen(
+                baralhoId = baralhoId,
+                navController = navController,
+                viewModel = viewModel
+            )
+        }
+
+        composable(
+            route = Screen.EditBaralhoScreen.route,
+            arguments = listOf(
+                navArgument("baralhoId") {
+                    type = NavType.LongType
+                }
+            )
+        ) { backStackEntry ->
+            val baralhoId = backStackEntry.arguments?.getLong("baralhoId") ?: 0L
+            EditBaralhoScreen(
                 baralhoId = baralhoId,
                 navController = navController,
                 viewModel = viewModel

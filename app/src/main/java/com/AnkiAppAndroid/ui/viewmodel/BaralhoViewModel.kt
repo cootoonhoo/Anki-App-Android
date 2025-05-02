@@ -63,4 +63,10 @@ class BaralhoViewModel(application: Application) : AndroidViewModel(application)
             _currentBaralho.value = repository.getBaralhoById(id)
         }
     }
+
+    fun deleteBaralho(baralho: Baralho) {
+        viewModelScope.launch {
+            repository.deleteBaralho(baralho)
+        }
+    }
 }

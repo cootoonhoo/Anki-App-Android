@@ -44,7 +44,8 @@ import com.AnkiAppAndroid.ui.viewmodel.BaralhoViewModel
 @Composable
 fun HomeScreen(
     viewModel: BaralhoViewModel,
-    onBaralhoClick: (Long) -> Unit
+    onBaralhoClick: (Long) -> Unit,
+    onEditClick: (Long) -> Unit
 ) {
     val baralhos by viewModel.baralhos.collectAsState()
     val isDialogOpen by viewModel.isDialogOpen.collectAsState()
@@ -87,7 +88,8 @@ fun HomeScreen(
                     items(baralhos) { baralho ->
                         BaralhoItem(
                             baralho = baralho,
-                            onClick = { onBaralhoClick(baralho.id) } // Novo parâmetro
+                            onClick = { onBaralhoClick(baralho.id) },
+                            onEditClick = { onEditClick(baralho.id) }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                     }
@@ -111,14 +113,14 @@ fun HomeScreen(
 @Composable
 fun BaralhoItem(
     baralho: Baralho,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onEditClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Box(
             modifier = Modifier
@@ -133,7 +135,7 @@ fun BaralhoItem(
             )
 
             IconButton(
-                onClick = { /* Implementação futura */ },
+                onClick = onEditClick,
                 modifier = Modifier.align(Alignment.CenterEnd)
             ) {
                 Icon(
