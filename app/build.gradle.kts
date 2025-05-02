@@ -55,6 +55,8 @@ dependencies {
     implementation(libs.androidx.recyclerview)
     implementation(libs.material)
     implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.navigation.runtime.android)
+    implementation(libs.androidx.navigation.compose.android)
     kapt(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)

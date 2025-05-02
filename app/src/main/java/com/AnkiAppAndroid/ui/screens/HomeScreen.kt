@@ -1,6 +1,6 @@
-// HomeScreen.kt
 package com.AnkiAppAndroid.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -39,9 +39,13 @@ import androidx.compose.ui.unit.sp
 import com.AnkiAppAndroid.data.model.Baralho
 import com.AnkiAppAndroid.ui.viewmodel.BaralhoViewModel
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(viewModel: BaralhoViewModel) {
+fun HomeScreen(
+    viewModel: BaralhoViewModel,
+    onBaralhoClick: (Long) -> Unit
+) {
     val baralhos by viewModel.baralhos.collectAsState()
     val isDialogOpen by viewModel.isDialogOpen.collectAsState()
 
@@ -81,7 +85,10 @@ fun HomeScreen(viewModel: BaralhoViewModel) {
                         .padding(16.dp)
                 ) {
                     items(baralhos) { baralho ->
-                        BaralhoItem(baralho = baralho)
+                        BaralhoItem(
+                            baralho = baralho,
+                            onClick = { onBaralhoClick(baralho.id) } // Novo parâmetro
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
@@ -102,10 +109,16 @@ fun HomeScreen(viewModel: BaralhoViewModel) {
 }
 
 @Composable
-fun BaralhoItem(baralho: Baralho) {
+fun BaralhoItem(
+    baralho: Baralho,
+    onClick: () -> Unit
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+
     ) {
         Box(
             modifier = Modifier

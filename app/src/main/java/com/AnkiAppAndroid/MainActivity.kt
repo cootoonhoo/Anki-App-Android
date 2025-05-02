@@ -1,4 +1,3 @@
-// MainActivity.kt atualizado
 package com.AnkiAppAndroid
 
 import android.os.Bundle
@@ -9,7 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.AnkiAppAndroid.ui.screens.HomeScreen
+import androidx.navigation.compose.rememberNavController
+import com.AnkiAppAndroid.ui.navigation.AppNavHost
 import com.AnkiAppAndroid.ui.theme.AnkiAppAndroidTheme
 import com.AnkiAppAndroid.ui.viewmodel.BaralhoViewModel
 
@@ -25,7 +25,11 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    HomeScreen(viewModel = viewModel)
+                    val navController = rememberNavController()
+                    AppNavHost(
+                        navController = navController,
+                        viewModel = viewModel
+                    )
                 }
             }
         }
