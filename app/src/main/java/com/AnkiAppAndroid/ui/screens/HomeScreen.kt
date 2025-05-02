@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -45,7 +46,8 @@ import com.AnkiAppAndroid.ui.viewmodel.BaralhoViewModel
 fun HomeScreen(
     viewModel: BaralhoViewModel,
     onBaralhoClick: (Long) -> Unit,
-    onEditClick: (Long) -> Unit
+    onEditClick: (Long) -> Unit,
+    onLocationClick: () -> Unit
 ) {
     val baralhos by viewModel.baralhos.collectAsState()
     val isDialogOpen by viewModel.isDialogOpen.collectAsState()
@@ -53,7 +55,15 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Anki App") }
+                title = { Text("Anki App") },
+                actions = {
+                    IconButton(onClick = onLocationClick) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = "Locais Favoritos"
+                        )
+                    }
+                }
             )
         },
         floatingActionButton = {
