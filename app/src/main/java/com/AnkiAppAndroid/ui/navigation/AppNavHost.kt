@@ -12,11 +12,13 @@ import com.AnkiAppAndroid.ui.screens.EditBaralhoScreen
 import com.AnkiAppAndroid.ui.screens.HomeScreen
 import com.AnkiAppAndroid.ui.screens.LocationScreen
 import com.AnkiAppAndroid.ui.viewmodel.BaralhoViewModel
+import com.AnkiAppAndroid.ui.viewmodel.LocationViewModel
 
 @Composable
 fun AppNavHost(
     navController: NavHostController,
-    viewModel: BaralhoViewModel
+    baralhoViewModel: BaralhoViewModel,
+    locationViewModel: LocationViewModel
 ) {
     NavHost(
         navController = navController,
@@ -24,7 +26,7 @@ fun AppNavHost(
     ) {
         composable(Screen.Home.route) {
             HomeScreen(
-                viewModel = viewModel,
+                viewModel = baralhoViewModel,
                 onBaralhoClick = { baralhoId ->
                     navController.navigate(Screen.CardsScreen.createRoute(baralhoId))
                 },
@@ -49,7 +51,7 @@ fun AppNavHost(
             CardsScreen(
                 baralhoId = baralhoId,
                 navController = navController,
-                viewModel = viewModel
+                viewModel = baralhoViewModel
             )
         }
 
@@ -65,12 +67,15 @@ fun AppNavHost(
             EditBaralhoScreen(
                 baralhoId = baralhoId,
                 navController = navController,
-                viewModel = viewModel
+                viewModel = baralhoViewModel
             )
         }
 
         composable(route = Screen.LocationScreen.route) {
-            LocationScreen(navController = navController)
+            LocationScreen(
+                navController = navController,
+                viewModel = locationViewModel
+            )
         }
     }
 }

@@ -5,12 +5,15 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.AnkiAppAndroid.data.dao.BaralhoDao
+import com.AnkiAppAndroid.data.dao.LocationDao
 import com.AnkiAppAndroid.data.model.Baralho
+import com.AnkiAppAndroid.data.model.Location
 
-@Database(entities = [Baralho::class], version = 1, exportSchema = false)
+@Database(entities = [Baralho::class, Location::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun baralhoDao(): BaralhoDao
+    abstract fun locationDao(): LocationDao
 
     companion object {
         @Volatile

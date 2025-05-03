@@ -1,5 +1,6 @@
 package com.AnkiAppAndroid
 
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,10 +13,14 @@ import androidx.navigation.compose.rememberNavController
 import com.AnkiAppAndroid.ui.navigation.AppNavHost
 import com.AnkiAppAndroid.ui.theme.AnkiAppAndroidTheme
 import com.AnkiAppAndroid.ui.viewmodel.BaralhoViewModel
+import com.AnkiAppAndroid.ui.viewmodel.LocationViewModel
+import com.AnkiAppAndroid.utils.LocationService
 
+// MainActivity.kt (atualizado para lidar com permissões)
 class MainActivity : ComponentActivity() {
 
-    private val viewModel: BaralhoViewModel by viewModels()
+    private val baralhoViewModel: BaralhoViewModel by viewModels()
+    private val locationViewModel: LocationViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,7 +33,8 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     AppNavHost(
                         navController = navController,
-                        viewModel = viewModel
+                        baralhoViewModel = baralhoViewModel,
+                        locationViewModel = locationViewModel
                     )
                 }
             }
