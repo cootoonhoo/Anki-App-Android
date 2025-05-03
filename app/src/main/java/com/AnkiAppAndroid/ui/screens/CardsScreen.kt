@@ -30,6 +30,7 @@ import com.AnkiAppAndroid.ui.components.DifficultyDialog
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.AnkiAppAndroid.ui.components.DifficultyDialog
+import com.AnkiAppAndroid.ui.components.SessionSummary
 import kotlinx.coroutines.launch
 import com.AnkiAppAndroid.ui.viewmodel.BaralhoViewModel
 import com.AnkiAppAndroid.ui.viewmodel.CardsViewModel
@@ -50,7 +51,8 @@ fun CardsScreen(
     val totalCards by cardsViewModel.totalCards.collectAsState()
     val showDifficultyDialog by cardsViewModel.showDifficultyDialog.collectAsState()
     val selectedDifficulty by cardsViewModel.selectedDifficulty.collectAsState()
-
+    val correctAnswers by cardsViewModel.correctAnswers.collectAsState()
+    val showSummary by cardsViewModel.showSummary.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -106,16 +108,18 @@ fun CardsScreen(
                         cardsViewModel.nextCard()
                     }
                 )
-            } ?: run {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Não há cartas disponíveis",
-                        fontSize = 18.sp,
-                        textAlign = TextAlign.Center
-                    )
+            }  ?: run {
+                if (!showSummary) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Não há cartas disponíveis",
+                            fontSize = 18.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
 
@@ -130,6 +134,19 @@ fun CardsScreen(
                             )
                         }
                         // TODO - Implementar algoritmo de Atulização da próxima exibição usand o cardsViewModel
+                    }
+                )
+            }
+
+            if (showSummary) {
+                SessionSummary(
+                    correctAnswers = correctAnswers,
+                    totalCards = totalCards,
+                    onRestartSession = {
+                        cardsViewModel.resetSession()
+                    },
+                    onExitSession = {
+                        navController.popBackStack()
                     }
                 )
             }

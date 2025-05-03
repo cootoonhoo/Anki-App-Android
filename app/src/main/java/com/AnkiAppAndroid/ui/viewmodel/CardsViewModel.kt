@@ -33,6 +33,12 @@ class CardsViewModel : ViewModel() {
     private val _selectedDifficulty = MutableStateFlow<Difficulty?>(null)
     val selectedDifficulty: StateFlow<Difficulty?> = _selectedDifficulty.asStateFlow()
 
+    private val _correctAnswers = MutableStateFlow(0)
+    val correctAnswers: StateFlow<Int> = _correctAnswers.asStateFlow()
+
+    private val _showSummary = MutableStateFlow(false)
+    val showSummary: StateFlow<Boolean> = _showSummary.asStateFlow()
+
     fun loadMockCards() {
         // Mock data baseado no JSON fornecido
         val mockCards = listOf(
@@ -74,6 +80,13 @@ class CardsViewModel : ViewModel() {
     fun selectAnswer(answerIndex: Int) {
         _selectedAnswer.value = answerIndex
         _isAnswerRevealed.value = true
+
+        _currentCard.value?.let { card ->
+            if (answerIndex == card.resposta) {
+                _correctAnswers.value += 1
+            }
+        }
+
         _showDifficultyDialog.value = true
     }
 
@@ -90,8 +103,18 @@ class CardsViewModel : ViewModel() {
             _selectedAnswer.value = null
             _isAnswerRevealed.value = false
         } else {
-            // Fim das cartas - você pode implementar uma lógica aqui
             _currentCard.value = null
+            _showSummary.value = true
         }
+    }
+
+    fun resetSession() {
+        _correctAnswers.value = 0
+        _cardIndex.value = 0
+        _currentCard.value = _cards.value.firstOrNull()
+        _selectedAnswer.value = null
+        _isAnswerRevealed.value = false
+        _selectedDifficulty.value = null
+        _showSummary.value = false
     }
 }
