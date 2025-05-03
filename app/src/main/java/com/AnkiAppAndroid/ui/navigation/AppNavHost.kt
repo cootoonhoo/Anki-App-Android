@@ -1,6 +1,7 @@
 package com.AnkiAppAndroid.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHost
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -12,6 +13,7 @@ import com.AnkiAppAndroid.ui.screens.EditBaralhoScreen
 import com.AnkiAppAndroid.ui.screens.HomeScreen
 import com.AnkiAppAndroid.ui.screens.LocationScreen
 import com.AnkiAppAndroid.ui.viewmodel.BaralhoViewModel
+import com.AnkiAppAndroid.ui.viewmodel.CardsViewModel
 import com.AnkiAppAndroid.ui.viewmodel.LocationViewModel
 
 @Composable
@@ -48,10 +50,12 @@ fun AppNavHost(
             )
         ) { backStackEntry ->
             val baralhoId = backStackEntry.arguments?.getLong("baralhoId") ?: 0L
+            val cardsViewModel: CardsViewModel = viewModel()
             CardsScreen(
                 baralhoId = baralhoId,
                 navController = navController,
-                viewModel = baralhoViewModel
+                baralhoViewModel = baralhoViewModel,
+                cardsViewModel = cardsViewModel
             )
         }
 
