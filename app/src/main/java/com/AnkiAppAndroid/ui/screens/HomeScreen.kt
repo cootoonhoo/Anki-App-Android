@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.AnkiAppAndroid.data.model.Baralho
+import com.AnkiAppAndroid.ui.components.NearbyLocationIndicator
 import com.AnkiAppAndroid.ui.viewmodel.BaralhoViewModel
 
 
@@ -51,12 +52,15 @@ fun HomeScreen(
 ) {
     val baralhos by viewModel.baralhos.collectAsState()
     val isDialogOpen by viewModel.isDialogOpen.collectAsState()
+    val currentNearbyLocation by viewModel.currentNearbyLocation.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Anki App") },
                 actions = {
+                    NearbyLocationIndicator(currentNearbyLocation)
+
                     IconButton(onClick = onLocationClick) {
                         Icon(
                             imageVector = Icons.Default.LocationOn,

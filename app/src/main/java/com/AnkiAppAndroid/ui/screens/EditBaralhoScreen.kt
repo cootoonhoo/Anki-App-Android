@@ -29,7 +29,6 @@ import androidx.navigation.NavController
 import com.AnkiAppAndroid.ui.navigation.Screen
 import com.AnkiAppAndroid.ui.viewmodel.BaralhoViewModel
 
-// ui/screens/EditBaralhoScreen.kt (atualizado)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditBaralhoScreen(
@@ -37,7 +36,6 @@ fun EditBaralhoScreen(
     navController: NavController,
     viewModel: BaralhoViewModel
 ) {
-    // Carrega o baralho pelo ID
     LaunchedEffect(baralhoId) {
         viewModel.fetchBaralhoById(baralhoId)
     }
@@ -58,7 +56,6 @@ fun EditBaralhoScreen(
                     }
                 },
                 actions = {
-                    // Botão de excluir
                     IconButton(
                         onClick = { showDeleteConfirmDialog = true }
                     ) {
@@ -84,7 +81,6 @@ fun EditBaralhoScreen(
             )
         }
 
-        // Diálogo de confirmação para exclusão
         if (showDeleteConfirmDialog) {
             AlertDialog(
                 onDismissRequest = { showDeleteConfirmDialog = false },
