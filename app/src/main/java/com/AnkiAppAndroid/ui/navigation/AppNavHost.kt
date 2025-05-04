@@ -15,14 +15,15 @@ import com.AnkiAppAndroid.ui.viewmodel.BaralhoViewModel
 import com.AnkiAppAndroid.ui.viewmodel.CardsViewModel
 import com.AnkiAppAndroid.ui.viewmodel.EditBaralhoViewModel
 import com.AnkiAppAndroid.ui.viewmodel.LocationViewModel
+import com.AnkiAppAndroid.ui.viewmodel.UsuarioViewModel
 
 @Composable
 fun AppNavHost(
     navController: NavHostController,
     baralhoViewModel: BaralhoViewModel,
     locationViewModel: LocationViewModel,
-    editBaralhoViewModel: EditBaralhoViewModel
-
+    editBaralhoViewModel: EditBaralhoViewModel,
+    usuarioViewModel: UsuarioViewModel
 ) {
     NavHost(
         navController = navController,
@@ -75,7 +76,7 @@ fun AppNavHost(
                 navController = navController,
                 baralhoViewModel = baralhoViewModel,
                 editViewModel = editBaralhoViewModel,
-                locationViewModel = locationViewModel
+                locationViewModel = locationViewModel,
             )
         }
 

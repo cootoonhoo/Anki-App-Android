@@ -15,6 +15,7 @@ import com.AnkiAppAndroid.ui.theme.AnkiAppAndroidTheme
 import com.AnkiAppAndroid.ui.viewmodel.BaralhoViewModel
 import com.AnkiAppAndroid.ui.viewmodel.EditBaralhoViewModel
 import com.AnkiAppAndroid.ui.viewmodel.LocationViewModel
+import com.AnkiAppAndroid.ui.viewmodel.UsuarioViewModel
 import com.AnkiAppAndroid.utils.LocationService
 
 // MainActivity.kt (atualizado para lidar com permissões)
@@ -23,6 +24,7 @@ class MainActivity : ComponentActivity() {
     private val baralhoViewModel: BaralhoViewModel by viewModels()
     private val locationViewModel: LocationViewModel by viewModels()
     private val editBaralhoViewModel: EditBaralhoViewModel by viewModels()
+    private val usuarioViewModel: UsuarioViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +39,8 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                         baralhoViewModel = baralhoViewModel,
                         locationViewModel = locationViewModel,
-                        editBaralhoViewModel = editBaralhoViewModel
+                        editBaralhoViewModel = editBaralhoViewModel,
+                        usuarioViewModel = usuarioViewModel
                     )
                 }
             }
