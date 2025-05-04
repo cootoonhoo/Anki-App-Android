@@ -13,6 +13,7 @@ import androidx.navigation.compose.rememberNavController
 import com.AnkiAppAndroid.ui.navigation.AppNavHost
 import com.AnkiAppAndroid.ui.theme.AnkiAppAndroidTheme
 import com.AnkiAppAndroid.ui.viewmodel.BaralhoViewModel
+import com.AnkiAppAndroid.ui.viewmodel.EditBaralhoViewModel
 import com.AnkiAppAndroid.ui.viewmodel.LocationViewModel
 import com.AnkiAppAndroid.utils.LocationService
 
@@ -21,6 +22,7 @@ class MainActivity : ComponentActivity() {
 
     private val baralhoViewModel: BaralhoViewModel by viewModels()
     private val locationViewModel: LocationViewModel by viewModels()
+    private val editBaralhoViewModel: EditBaralhoViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,7 +36,8 @@ class MainActivity : ComponentActivity() {
                     AppNavHost(
                         navController = navController,
                         baralhoViewModel = baralhoViewModel,
-                        locationViewModel = locationViewModel
+                        locationViewModel = locationViewModel,
+                        editBaralhoViewModel = editBaralhoViewModel
                     )
                 }
             }

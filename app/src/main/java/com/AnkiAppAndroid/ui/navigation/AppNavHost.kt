@@ -2,7 +2,6 @@ package com.AnkiAppAndroid.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHost
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -14,13 +13,16 @@ import com.AnkiAppAndroid.ui.screens.HomeScreen
 import com.AnkiAppAndroid.ui.screens.LocationScreen
 import com.AnkiAppAndroid.ui.viewmodel.BaralhoViewModel
 import com.AnkiAppAndroid.ui.viewmodel.CardsViewModel
+import com.AnkiAppAndroid.ui.viewmodel.EditBaralhoViewModel
 import com.AnkiAppAndroid.ui.viewmodel.LocationViewModel
 
 @Composable
 fun AppNavHost(
     navController: NavHostController,
     baralhoViewModel: BaralhoViewModel,
-    locationViewModel: LocationViewModel
+    locationViewModel: LocationViewModel,
+    editBaralhoViewModel: EditBaralhoViewModel
+
 ) {
     NavHost(
         navController = navController,
@@ -71,7 +73,9 @@ fun AppNavHost(
             EditBaralhoScreen(
                 baralhoId = baralhoId,
                 navController = navController,
-                viewModel = baralhoViewModel
+                baralhoViewModel = baralhoViewModel,
+                editViewModel = editBaralhoViewModel,
+                locationViewModel = locationViewModel
             )
         }
 

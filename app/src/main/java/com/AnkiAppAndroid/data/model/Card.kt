@@ -12,12 +12,3 @@ data class Card(
     val localizacao: String?,
     val proximaRevisao: String
 )
-
-enum class CardType {
-    MULTIPLE_CHOICE
-}
-
-data class BaralhoBandoDados @OptIn(ExperimentalUuidApi::class) constructor(
-    val cartas: List<Card>,
-    val idUsuario: Uuid
-)
