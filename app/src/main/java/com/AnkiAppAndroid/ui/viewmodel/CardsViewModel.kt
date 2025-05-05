@@ -10,10 +10,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 class CardsViewModel : ViewModel() {
 
     private val repo = BaralhoBackendRepository()  // GET /baralhos/{id} :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
+    private var baralhoId: String = ""
 
     // Lista completa de cartas do baralho
     private val _cards = MutableStateFlow<List<Card>>(emptyList())
@@ -50,20 +54,18 @@ class CardsViewModel : ViewModel() {
     private val _showSummary = MutableStateFlow(false)
     val showSummary: StateFlow<Boolean> = _showSummary.asStateFlow()
 
-    /**
-     * Fetch all cards for the given deck ID from the backend,
-     * then initialize session state.
-     */
     fun fetchCards(baralhoId: String) {
+        // grava o id para uso posterior
+        this.baralhoId = baralhoId
+
         viewModelScope.launch {
             try {
-                val baralho = repo.obter(baralhoId)   // GET /baralhos/{id} :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}
+                val baralho = repo.obter(baralhoId)    // GET /baralhos/{id}
                 _cards.value = baralho.cartas
                 _totalCards.value = baralho.cartas.size
                 resetSession()
             } catch (e: Exception) {
                 e.printStackTrace()
-                // Optionally expose an error StateFlow here
             }
         }
     }
@@ -82,6 +84,38 @@ class CardsViewModel : ViewModel() {
     fun selectDifficulty(difficulty: Difficulty) {
         _selectedDifficulty.value = difficulty
         _showDifficultyDialog.value = false
+
+        val idx = _cardIndex.value
+        val current = _currentCard.value ?: return
+
+        // 1) calcula nova data ISO
+        val days = when (difficulty) {
+            Difficulty.EASY   -> 1
+            Difficulty.MEDIUM -> 2
+            Difficulty.HARD   -> 3
+            Difficulty.IMPOSSIBLE -> 4
+        }
+        val cal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, days) }
+        val isoFmt = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+        val nextRev = isoFmt.format(cal.time)
+
+        // 2) atualiza a carta localmente
+        val updatedCard = current.copy(proximaRevisao = nextRev)
+        val updatedList = _cards.value.toMutableList().apply {
+            this[idx] = updatedCard
+        }
+        _cards.value = updatedList
+        _currentCard.value = updatedCard
+
+        // 3) persiste no backend o deck inteiro
+        viewModelScope.launch {
+            baralhoId?.let { id ->
+                val baralho = repo.obter(id)
+                val persisted = repo.atualizar(baralho.copy(cartas = updatedList))  // PUT /baralhos/{id} :contentReference[oaicite:3]{index=3}:contentReference[oaicite:4]{index=4}
+                _cards.value = persisted.cartas
+                _currentCard.value = persisted.cartas.getOrNull(idx)
+            }
+        }
     }
 
     fun nextCard() {

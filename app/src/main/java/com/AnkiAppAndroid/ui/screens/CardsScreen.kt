@@ -101,15 +101,16 @@ fun CardsScreen(
 
             }
 
+            if (showDifficultyDialog) {
+                DifficultyDialog { difficulty ->
+                    cardsViewModel.selectDifficulty(difficulty)
+                }
+            }
+
             // Difficulty dialog
             if (showDifficultyDialog) {
                 DifficultyDialog { difficulty ->
                     cardsViewModel.selectDifficulty(difficulty)
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            "Implementar update do proxima_revisao", duration = SnackbarDuration.Short
-                        )
-                    }
                 }
             }
 
