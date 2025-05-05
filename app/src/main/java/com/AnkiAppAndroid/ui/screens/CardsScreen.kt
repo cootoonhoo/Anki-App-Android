@@ -1,8 +1,9 @@
-// ui/screens/CardsScreen.kt (completamente atualizado)
+// ui/screens/CardsScreen.kt
 package com.AnkiAppAndroid.ui.screens
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,16 +25,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.AnkiAppAndroid.data.model.Card
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.material3.SnackbarDuration
-import com.AnkiAppAndroid.ui.components.DifficultyDialog
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.AnkiAppAndroid.ui.components.DifficultyDialog
 import com.AnkiAppAndroid.ui.components.SessionSummary
-import kotlinx.coroutines.launch
 import com.AnkiAppAndroid.ui.viewmodel.BaralhoViewModel
 import com.AnkiAppAndroid.ui.viewmodel.CardsViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,30 +39,30 @@ fun CardsScreen(
     baralhoViewModel: BaralhoViewModel,
     cardsViewModel: CardsViewModel = viewModel()
 ) {
+    // Deck metadata (title, etc)
     val baralho by baralhoViewModel.currentBaralho.collectAsState()
+
+    // Card session state
     val currentCard by cardsViewModel.currentCard.collectAsState()
     val selectedAnswer by cardsViewModel.selectedAnswer.collectAsState()
     val isAnswerRevealed by cardsViewModel.isAnswerRevealed.collectAsState()
     val cardIndex by cardsViewModel.cardIndex.collectAsState()
     val totalCards by cardsViewModel.totalCards.collectAsState()
     val showDifficultyDialog by cardsViewModel.showDifficultyDialog.collectAsState()
-    val selectedDifficulty by cardsViewModel.selectedDifficulty.collectAsState()
     val correctAnswers by cardsViewModel.correctAnswers.collectAsState()
     val showSummary by cardsViewModel.showSummary.collectAsState()
+
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // Busca o baralho pelo ID quando a tela é criada
+    // 1) Load deck info & cards from backend
     LaunchedEffect(baralhoId) {
         baralhoViewModel.fetchBaralhoById(baralhoId)
-        // Carrega o mock de cartas - TODO: Criar o método que pega as cartas do banco de dados.
-        cardsViewModel.loadMockCards()
+        cardsViewModel.fetchCards(baralhoId)
     }
 
     Scaffold(
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -81,73 +77,49 @@ fun CardsScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Voltar"
-                        )
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
                     }
                 }
             )
         }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
+    ) { padding ->
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            // Show current card or empty state
             currentCard?.let { card ->
                 CardContent(
                     card = card,
                     selectedAnswer = selectedAnswer,
                     isAnswerRevealed = isAnswerRevealed,
-                    onAnswerSelected = { answer ->
-                        cardsViewModel.selectAnswer(answer)
-                    },
-                    onNextCard = {
-
-                        cardsViewModel.nextCard()
-                    }
+                    onAnswerSelected = { cardsViewModel.selectAnswer(it) },
+                    onNextCard = { cardsViewModel.nextCard() }
                 )
-            }  ?: run {
-                if (!showSummary) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Não há cartas disponíveis",
-                            fontSize = 18.sp,
-                            textAlign = TextAlign.Center
+            } ?: if (!showSummary) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Não há cartas disponíveis", textAlign = TextAlign.Center, fontSize = 18.sp)
+                }
+            } else {
+
+            }
+
+            // Difficulty dialog
+            if (showDifficultyDialog) {
+                DifficultyDialog { difficulty ->
+                    cardsViewModel.selectDifficulty(difficulty)
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            "Implementar update do proxima_revisao", duration = SnackbarDuration.Short
                         )
                     }
                 }
             }
 
-            if (showDifficultyDialog) {
-                DifficultyDialog(
-                    onDifficultySelected = { difficulty ->
-                        cardsViewModel.selectDifficulty(difficulty)
-                        scope.launch {
-                            snackbarHostState.showSnackbar(
-                                message = "Implementar update do proxima_revisao",
-                                duration = SnackbarDuration.Short
-                            )
-                        }
-                        // TODO - Implementar algoritmo de Atulização da próxima exibição usand o cardsViewModel
-                    }
-                )
-            }
-
+            // Session summary
             if (showSummary) {
                 SessionSummary(
                     correctAnswers = correctAnswers,
                     totalCards = totalCards,
-                    onRestartSession = {
-                        cardsViewModel.resetSession()
-                    },
-                    onExitSession = {
-                        navController.popBackStack()
-                    }
+                    onRestartSession = { cardsViewModel.resetSession() },
+                    onExitSession = { navController.popBackStack() }
                 )
             }
         }
@@ -155,7 +127,7 @@ fun CardsScreen(
 }
 
 @Composable
-fun CardContent(
+private fun CardContent(
     card: Card,
     selectedAnswer: Int?,
     isAnswerRevealed: Boolean,
@@ -168,7 +140,7 @@ fun CardContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // Tópico do card
+        // Topico banner
         Surface(
             color = MaterialTheme.colorScheme.primaryContainer,
             shape = RoundedCornerShape(8.dp),
@@ -176,7 +148,7 @@ fun CardContent(
         ) {
             Text(
                 text = card.topico,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                modifier = Modifier.padding(12.dp),
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 fontWeight = FontWeight.Bold
             )
@@ -184,10 +156,8 @@ fun CardContent(
 
         // Pergunta
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+            elevation = CardDefaults.cardElevation(2.dp)
         ) {
             Text(
                 text = card.pergunta,
@@ -199,58 +169,44 @@ fun CardContent(
         }
 
         // Alternativas
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            card.alternativas.forEachIndexed { index, alternative ->
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            card.alternativas.forEachIndexed { idx, alt ->
                 AlternativeOption(
-                    text = alternative,
-                    isSelected = selectedAnswer == index,
-                    isCorrect = isAnswerRevealed && index == card.resposta,
-                    isIncorrect = isAnswerRevealed && selectedAnswer == index && index != card.resposta,
+                    text = alt,
+                    isSelected = selectedAnswer == idx,
+                    isCorrect = isAnswerRevealed && idx == card.resposta,
+                    isIncorrect = isAnswerRevealed && selectedAnswer == idx && idx != card.resposta,
                     isAnswerRevealed = isAnswerRevealed,
-                    onClick = {
-                        if (!isAnswerRevealed) {
-                            onAnswerSelected(index)
-                        }
-                    }
+                    onClick = { if (!isAnswerRevealed) onAnswerSelected(idx) }
                 )
             }
         }
 
-        // Botão de ação
+        // Próxima carta ou resumo
         if (isAnswerRevealed) {
             Button(
                 onClick = onNextCard,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 24.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
+                modifier = Modifier.fillMaxWidth().padding(top = 24.dp)
             ) {
                 Text("Próxima Carta", fontSize = 16.sp)
             }
         }
 
-        // Localização (se disponível)
-        card.localizacao?.let { location ->
+        // Localização
+        card.localizacao?.let {
             Text(
-                text = "📍 $location",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
+                text = "📍 $it",
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                fontSize = 14.sp
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
         }
     }
 }
 
 @Composable
-fun AlternativeOption(
+private fun AlternativeOption(
     text: String,
     isSelected: Boolean,
     isCorrect: Boolean,
@@ -258,7 +214,7 @@ fun AlternativeOption(
     isAnswerRevealed: Boolean,
     onClick: () -> Unit
 ) {
-    val backgroundColor by animateColorAsState(
+    val bg by animateColorAsState(
         targetValue = when {
             isCorrect -> Color(0xFF4CAF50).copy(alpha = 0.15f)
             isIncorrect -> Color(0xFFE53935).copy(alpha = 0.15f)
@@ -267,8 +223,7 @@ fun AlternativeOption(
         },
         animationSpec = tween(300)
     )
-
-    val borderColor by animateColorAsState(
+    val border by animateColorAsState(
         targetValue = when {
             isCorrect -> Color(0xFF4CAF50)
             isIncorrect -> Color(0xFFE53935)
@@ -281,44 +236,23 @@ fun AlternativeOption(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .border(
-                width = if (isSelected || isAnswerRevealed) 2.dp else 1.dp,
-                color = borderColor,
-                shape = RoundedCornerShape(8.dp)
-            )
-            .clickable(onClick = onClick)
-            .background(
-                color = backgroundColor,
-                shape = RoundedCornerShape(8.dp)
-            ),
+            .border(BorderStroke(if (isSelected||isAnswerRevealed) 2.dp else 1.dp, border), RoundedCornerShape(8.dp))
+            .background(bg, RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(8.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = text,
-                fontSize = 16.sp,
-                fontWeight = if (isSelected || isCorrect) FontWeight.Bold else FontWeight.Normal
-            )
-
+            Text(text = text, fontWeight = if (isSelected||isCorrect) FontWeight.Bold else FontWeight.Normal)
             if (isAnswerRevealed) {
-                when {
-                    isCorrect -> Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "Correto",
-                        tint = Color(0xFF4CAF50)
-                    )
-                    isIncorrect -> Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Incorreto",
-                        tint = Color(0xFFE53935)
-                    )
-                }
+                Icon(
+                    imageVector = if (isCorrect) Icons.Default.Check else Icons.Default.Close,
+                    contentDescription = if (isCorrect) "Correto" else "Incorreto",
+                    tint = if (isCorrect) Color(0xFF4CAF50) else Color(0xFFE53935)
+                )
             }
         }
     }
