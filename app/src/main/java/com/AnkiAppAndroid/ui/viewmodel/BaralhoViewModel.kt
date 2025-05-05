@@ -4,7 +4,10 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.AnkiAppAndroid.data.database.AppDatabase
+import com.AnkiAppAndroid.data.database.BaralhoService
 import com.AnkiAppAndroid.data.model.Baralho
+import com.AnkiAppAndroid.data.model.BaralhoBancoDados
+import com.AnkiAppAndroid.data.repository.BaralhoBackendRepository
 import com.AnkiAppAndroid.data.repository.BaralhoRepository
 import com.AnkiAppAndroid.data.repository.LocationRepository
 import com.AnkiAppAndroid.utils.LocationService
@@ -18,9 +21,13 @@ import kotlinx.coroutines.launch
 
 class BaralhoViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository: BaralhoRepository
+
+    private val baralhoRepository: BaralhoRepository
     private val _baralhos = MutableStateFlow<List<Baralho>>(emptyList())
     val baralhos: StateFlow<List<Baralho>> = _baralhos.asStateFlow()
+
+    private val _baralhosBD = MutableStateFlow<List<BaralhoBancoDados>>(emptyList())
+    val baralhosBD: StateFlow<List<BaralhoBancoDados>> = _baralhosBD.asStateFlow()
 
     private val _currentBaralho = MutableStateFlow<Baralho?>(null)
     val currentBaralho: StateFlow<Baralho?> = _currentBaralho.asStateFlow()
@@ -37,15 +44,29 @@ class BaralhoViewModel(application: Application) : AndroidViewModel(application)
 
     init {
         val database = AppDatabase.getDatabase(application)
-        repository = BaralhoRepository(database.baralhoDao())
+        baralhoRepository = BaralhoRepository(database.baralhoDao())
         locationRepository = LocationRepository(database.locationDao())
         viewModelScope.launch {
-            repository.allBaralhos.collect { baralhos ->
+            val getBaralhos = BaralhoService.getAll();
+            baralhoRepository.allBaralhos.collect { baralhos ->
                 _baralhos.value = baralhos
             }
         }
         startLocationTracking()
     }
+
+    fun carregarBaralhos() {
+        viewModelScope.launch {
+            try {
+                val lista = BaralhoService.getAll()
+                _baralhosBD.value = lista
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _baralhosBD.value = emptyList()
+            }
+        }
+    }
+
 
     private fun startLocationTracking() {
         locationTrackingJob?.cancel()
@@ -82,7 +103,7 @@ class BaralhoViewModel(application: Application) : AndroidViewModel(application)
     fun adicionarBaralho(titulo: String) {
         if (titulo.isNotBlank()) {
             viewModelScope.launch {
-                repository.insertBaralho(Baralho(titulo = titulo))
+                baralhoRepository.insertBaralho(Baralho(titulo = titulo))
             }
         }
     }
@@ -98,20 +119,20 @@ class BaralhoViewModel(application: Application) : AndroidViewModel(application)
     fun getBaralhoById(id: Long): Baralho? {
         var baralho: Baralho? = null
         viewModelScope.launch {
-            baralho = repository.getBaralhoById(id)
+            baralho = baralhoRepository.getBaralhoById(id)
         }
         return baralho
     }
 
     fun fetchBaralhoById(id: Long) {
         viewModelScope.launch {
-            _currentBaralho.value = repository.getBaralhoById(id)
+            _currentBaralho.value = baralhoRepository.getBaralhoById(id)
         }
     }
 
     fun deleteBaralho(baralho: Baralho) {
         viewModelScope.launch {
-            repository.deleteBaralho(baralho)
+            baralhoRepository.deleteBaralho(baralho)
         }
     }
 }

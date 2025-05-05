@@ -41,7 +41,9 @@ class EditBaralhoViewModel : ViewModel() {
                     proximaRevisao = "2025-04-11T19:00:00.000Z"
                 )
             ),
-            idUsuario = UUID.fromString("123e4567-e89b-12d3-a456-426614174000")
+            idUsuario = UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
+            titulo = "teste",
+            id = "teste"
         )
         _mongoBaralho.value = mockBaralho
     }
