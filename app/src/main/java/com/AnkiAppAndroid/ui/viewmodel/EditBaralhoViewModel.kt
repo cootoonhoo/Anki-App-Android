@@ -2,12 +2,15 @@
 package com.AnkiAppAndroid.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.AnkiAppAndroid.data.database.BaralhoService
 import com.AnkiAppAndroid.data.model.Card
 import com.AnkiAppAndroid.data.model.CardType
 import com.AnkiAppAndroid.data.model.BaralhoBancoDados
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -22,30 +25,25 @@ class EditBaralhoViewModel : ViewModel() {
     private val _editingCard = MutableStateFlow<Card?>(null)
     val editingCard: StateFlow<Card?> = _editingCard.asStateFlow()
 
-    private val _saveEvent = MutableStateFlow<Boolean>(false)
+    private val _saveEvent = MutableStateFlow(false)
     val saveEvent: StateFlow<Boolean> = _saveEvent.asStateFlow()
 
     private val _snackbarMessage = MutableStateFlow<String?>(null)
     val snackbarMessage: StateFlow<String?> = _snackbarMessage.asStateFlow()
 
-    fun loadMockBaralho() {
-        val mockBaralho = BaralhoBancoDados(
-            cartas = mutableListOf(
-                Card(
-                    topico = "Física",
-                    tipo = CardType.MULTIPLE_CHOICE,
-                    pergunta = "Qual é a unidade de medida da força no Sistema Internacional?",
-                    resposta = 2,
-                    alternativas = listOf("Joule", "Watt", "Newton", "Pascal"),
-                    localizacao = "Casa",
-                    proximaRevisao = "2025-04-11T19:00:00.000Z"
-                )
-            ),
-            idUsuario = UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
-            titulo = "teste",
-            id = "teste"
-        )
-        _mongoBaralho.value = mockBaralho
+    /**
+     * Carrega do backend o baralho com o ID informado e popula _mongoBaralho.
+     */
+    fun loadBaralho(baralhoId: String) {
+        viewModelScope.launch {
+            try {
+                val baralho = BaralhoService.getById(baralhoId)
+                _mongoBaralho.value = baralho
+            } catch (e: Exception) {
+                _snackbarMessage.value = "Falha ao carregar baralho"
+                e.printStackTrace()
+            }
+        }
     }
 
     fun showAddCardDialog() {
@@ -71,8 +69,6 @@ class EditBaralhoViewModel : ViewModel() {
         localizacao: String?
     ) {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-        val currentCard = _editingCard.value
-
         val newCard = Card(
             topico = topico,
             tipo = CardType.MULTIPLE_CHOICE,
@@ -85,15 +81,10 @@ class EditBaralhoViewModel : ViewModel() {
 
         _mongoBaralho.value?.let { baralho ->
             val newCartas = baralho.cartas.toMutableList()
-
-            if (currentCard != null) {
-                val index = newCartas.indexOf(currentCard)
-                if (index != -1) {
-                    newCartas[index] = newCard
-                }
-            } else {
-                newCartas.add(newCard)
-            }
+            _editingCard.value?.let { current ->
+                val idx = newCartas.indexOf(current)
+                if (idx >= 0) newCartas[idx] = newCard
+            } ?: newCartas.add(newCard)
 
             _mongoBaralho.value = baralho.copy(cartas = newCartas)
         }
@@ -103,18 +94,25 @@ class EditBaralhoViewModel : ViewModel() {
 
     fun deleteCard(card: Card) {
         _mongoBaralho.value?.let { baralho ->
-            val newCartas = baralho.cartas.toMutableList()
-            newCartas.remove(card)
+            val newCartas = baralho.cartas.toMutableList().apply { remove(card) }
             _mongoBaralho.value = baralho.copy(cartas = newCartas)
         }
     }
 
+    fun clearSaveEvent() { _saveEvent.value = false }
+
     fun saveBaralho() {
         _mongoBaralho.value?.let { baralho ->
-            // Aqui seria a chamada para o backend
-            // Por enquanto, apenas mostra o snackbar
-            _snackbarMessage.value = "Salvar o baralho no backend"
-            _saveEvent.value = true
+            viewModelScope.launch {
+                try {
+                    val atualizado = BaralhoService.update(baralho)
+                    _mongoBaralho.value = atualizado       // ← atualiza o Flow local
+                    _snackbarMessage.value = "Baralho salvo com sucesso"
+                    _saveEvent.value = true
+                } catch (e: Exception) {
+                    _snackbarMessage.value = "Falha ao salvar baralho"
+                }
+            }
         }
     }
 

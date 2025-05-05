@@ -6,5 +6,5 @@ data class BaralhoBancoDados(
     val id: String,
     val titulo: String,
     val cartas: MutableList<Card>,
-    val idUsuario: UUID
+    val idUsuario: String
 )

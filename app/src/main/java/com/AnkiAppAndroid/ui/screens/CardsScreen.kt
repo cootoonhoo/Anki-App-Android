@@ -38,7 +38,7 @@ import com.AnkiAppAndroid.ui.viewmodel.CardsViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CardsScreen(
-    baralhoId: Long,
+    baralhoId: String,
     navController: NavController,
     baralhoViewModel: BaralhoViewModel,
     cardsViewModel: CardsViewModel = viewModel()

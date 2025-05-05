@@ -1,6 +1,7 @@
 package com.AnkiAppAndroid.data.database
 
 import com.AnkiAppAndroid.data.dto.BaralhoDto
+import com.AnkiAppAndroid.data.dto.CreateBaralhoDTO
 import com.AnkiAppAndroid.data.mapper.toDomain
 import com.AnkiAppAndroid.data.mapper.toDto
 import com.AnkiAppAndroid.data.model.*
@@ -42,14 +43,33 @@ object BaralhoService {
 
     /*--------------------------- POST /baralhos --------------------------*/
     suspend fun create(baralho: BaralhoBancoDados): BaralhoBancoDados = withContext(Dispatchers.IO) {
-        val bodyReq = json.encodeToString(baralho.toDto())
+        // 1) monte o DTO de criação, sem 'id'
+        val createDto = CreateBaralhoDTO(
+            titulo   = baralho.titulo,
+            cartas   = baralho.cartas.map { it.toDto() },
+            idUsuario = baralho.idUsuario.toString()
+        )
+
+        // 2) serialize só o CreateBaralhoDto
+        val bodyReq = json.encodeToString(createDto)
             .toRequestBody(JSON)
 
-        val req  = Request.Builder().url(BASE).post(bodyReq).build()
-        val body = client.newCall(req).execute().body?.string()
-            ?: error("Corpo vazio")
+        val request = Request.Builder()
+            .url(BASE)
+            .post(bodyReq)
+            .build()
 
-        json.decodeFromString<BaralhoDto>(body).toDomain()
+        val response = client.newCall(request).execute()
+        if (!response.isSuccessful) {
+            error("Falha ao criar baralho: HTTP ${response.code}")
+        }
+
+        // 3) desserialize o body de resposta no BaralhoDto completo (que inclui 'id')
+        val respBody = response.body?.string() ?: error("Body vazio")
+        val createdDto = json.decodeFromString<BaralhoDto>(respBody)
+
+        // 4) converta para seu modelo de domínio
+        createdDto.toDomain()
     }
 
     /*--------------------------- PUT /baralhos/{id} ----------------------*/

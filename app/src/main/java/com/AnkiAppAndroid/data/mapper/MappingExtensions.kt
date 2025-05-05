@@ -14,7 +14,7 @@ fun BaralhoDto.toDomain(): BaralhoBancoDados =
         id          = id,
         titulo      = titulo,
         cartas      = cartas.map { it.toDomain() }.toMutableList(),
-        idUsuario   = UUID.fromString(idUsuario)
+        idUsuario   = idUsuario
     )
 
 fun CartaDto.toDomain(): Card = Card(
@@ -34,7 +34,7 @@ fun BaralhoBancoDados.toDto(): BaralhoDto =
         id          = id,
         titulo      = titulo,
         cartas      = cartas.map { it.toDto() },
-        idUsuario   = idUsuario.toString()
+        idUsuario   = idUsuario
     )
 
 fun Card.toDto(): CartaDto = CartaDto(
