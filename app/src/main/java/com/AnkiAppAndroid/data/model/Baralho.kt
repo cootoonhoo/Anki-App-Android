@@ -7,5 +7,6 @@ import androidx.room.PrimaryKey
 data class Baralho(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val titulo: String
+    val titulo: String,
+    val mongoId: String? = null // ID do baralho no MongoDB/API
 )

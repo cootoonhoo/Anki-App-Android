@@ -1,4 +1,3 @@
-// ui/screens/EditBaralhoScreen.kt (completamente atualizado)
 package com.AnkiAppAndroid.ui.screens
 
 import androidx.compose.foundation.layout.*
@@ -39,13 +38,24 @@ fun EditBaralhoScreen(
     val showAddCardDialog by editViewModel.showAddCardDialog.collectAsState()
     val editingCard by editViewModel.editingCard.collectAsState()
     val snackbarMessage by editViewModel.snackbarMessage.collectAsState()
+    val isLoading by baralhoViewModel.isLoading.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
 
     LaunchedEffect(baralhoId) {
         baralhoViewModel.fetchBaralhoById(baralhoId)
-        editViewModel.loadMockBaralho()
+    }
+
+    LaunchedEffect(baralho) {
+        baralho?.let { localBaralho ->
+            localBaralho.mongoId?.let { mongoId ->
+                editViewModel.loadBaralhoById(mongoId)
+            } ?: run {
+                editViewModel.loadMockBaralho()
+            }
+        }
     }
 
     LaunchedEffect(snackbarMessage) {
@@ -55,6 +65,35 @@ fun EditBaralhoScreen(
                 editViewModel.clearSnackbarMessage()
             }
         }
+    }
+
+    if (showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            title = { Text("Excluir Baralho") },
+            text = { Text("Tem certeza que deseja excluir este baralho? Esta ação não pode ser desfeita e excluirá o baralho tanto do aplicativo quanto do servidor.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        baralho?.let {
+                            baralhoViewModel.deleteBaralho(it)
+                            showDeleteConfirmation = false
+                            navController.navigate(Screen.Home.route) {
+                                popUpTo(Screen.Home.route) { inclusive = true }
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Excluir")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showDeleteConfirmation = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -70,27 +109,28 @@ fun EditBaralhoScreen(
                     }
                 },
                 actions = {
-                    IconButton(
-                        onClick = { editViewModel.saveBaralho() }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = "Salvar Baralho"
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
                         )
+                    } else {
+                        IconButton(
+                            onClick = { editViewModel.saveBaralho() }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Done,
+                                contentDescription = "Salvar Baralho"
+                            )
+                        }
                     }
                     IconButton(
-                        onClick = {
-                            baralho?.let {
-                                baralhoViewModel.deleteBaralho(it)
-                                navController.navigate(Screen.Home.route) {
-                                    popUpTo(Screen.Home.route) { inclusive = true }
-                                }
-                            }
-                        }
+                        onClick = { showDeleteConfirmation = true }
                     ) {
                         Icon(
                             imageVector = Icons.Default.Delete,
-                            contentDescription = "Excluir Baralho"
+                            contentDescription = "Excluir Baralho",
+                            tint = MaterialTheme.colorScheme.error
                         )
                     }
                 }
@@ -112,7 +152,14 @@ fun EditBaralhoScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            if (mongoBaralho?.cartas?.isEmpty() == true) {
+            if (isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else if (mongoBaralho?.cartas?.isEmpty() == true) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -161,7 +208,6 @@ fun EditBaralhoScreen(
         }
     }
 }
-
 @Composable
 fun CardItem(
     card: Card,

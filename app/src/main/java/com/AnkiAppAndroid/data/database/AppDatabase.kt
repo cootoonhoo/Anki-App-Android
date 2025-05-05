@@ -11,7 +11,7 @@ import com.AnkiAppAndroid.data.model.Baralho
 import com.AnkiAppAndroid.data.model.Location
 import com.AnkiAppAndroid.data.model.Usuario
 
-@Database(entities = [Baralho::class, Location::class, Usuario::class], version = 3, exportSchema = false)
+@Database(entities = [Baralho::class, Location::class, Usuario::class], version = 4, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun baralhoDao(): BaralhoDao

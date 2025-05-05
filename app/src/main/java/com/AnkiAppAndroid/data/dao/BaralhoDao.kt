@@ -24,4 +24,10 @@ interface BaralhoDao {
 
     @Query("SELECT * FROM baralhos WHERE id = :id")
     suspend fun getBaralhoById(id: Long): Baralho?
+
+    @Query("SELECT * FROM baralhos ORDER BY titulo ASC")
+    suspend fun getAllBaralhosSync(): List<Baralho>
+
+    @Query("DELETE FROM baralhos")
+    suspend fun deleteAllBaralhos()
 }

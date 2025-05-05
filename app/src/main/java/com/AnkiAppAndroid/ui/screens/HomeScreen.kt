@@ -14,19 +14,24 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +58,16 @@ fun HomeScreen(
     val baralhos by viewModel.baralhos.collectAsState()
     val isDialogOpen by viewModel.isDialogOpen.collectAsState()
     val currentNearbyLocation by viewModel.currentNearbyLocation.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(error) {
+        error?.let {
+            snackbarHostState.showSnackbar(it)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -67,6 +82,13 @@ fun HomeScreen(
                             contentDescription = "Locais Favoritos"
                         )
                     }
+
+                    IconButton(onClick = { viewModel.refreshBaralhos() }) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Atualizar Baralhos"
+                        )
+                    }
                 }
             )
         },
@@ -74,6 +96,9 @@ fun HomeScreen(
             FloatingActionButton(onClick = { viewModel.showDialog() }) {
                 Icon(Icons.Default.Add, contentDescription = "Adicionar Baralho")
             }
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
         }
     ) { paddingValues ->
         Box(
@@ -81,7 +106,16 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            if (baralhos.isEmpty()) {
+            if (isLoading) {
+                // Exibe um indicador de carregamento
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+            else if (baralhos.isEmpty()) {
                 // Exibe uma mensagem quando não há baralhos
                 Box(
                     modifier = Modifier.fillMaxSize(),

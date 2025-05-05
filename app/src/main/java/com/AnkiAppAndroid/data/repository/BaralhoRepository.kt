@@ -23,4 +23,10 @@ class BaralhoRepository(private val baralhoDao: BaralhoDao) {
     suspend fun getBaralhoById(id: Long): Baralho? {
         return baralhoDao.getBaralhoById(id)
     }
+
+    suspend fun getAllBaralhosSync(): List<Baralho> {
+        return baralhoDao.getAllBaralhosSync()
+    }
+
+
 }
