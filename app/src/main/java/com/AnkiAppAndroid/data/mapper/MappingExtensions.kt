@@ -1,5 +1,10 @@
-package com.AnkiAppAndroid.data.model
+package com.AnkiAppAndroid.data.mapper
 
+import com.AnkiAppAndroid.data.dto.BaralhoDto
+import com.AnkiAppAndroid.data.dto.CartaDto
+import com.AnkiAppAndroid.data.model.BaralhoBancoDados
+import com.AnkiAppAndroid.data.model.Card
+import com.AnkiAppAndroid.data.model.CardType
 import java.util.UUID
 
 /* ---------- de REMOTE p/ DOMÍNIO ---------- */

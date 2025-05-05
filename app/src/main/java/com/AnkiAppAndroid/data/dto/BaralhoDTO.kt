@@ -1,4 +1,4 @@
-package com.AnkiAppAndroid.data.model
+package com.AnkiAppAndroid.data.dto
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

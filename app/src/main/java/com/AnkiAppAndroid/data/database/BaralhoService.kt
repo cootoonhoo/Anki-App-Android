@@ -1,9 +1,11 @@
 package com.AnkiAppAndroid.data.database
 
+import com.AnkiAppAndroid.data.dto.BaralhoDto
+import com.AnkiAppAndroid.data.mapper.toDomain
+import com.AnkiAppAndroid.data.mapper.toDto
 import com.AnkiAppAndroid.data.model.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
