@@ -12,11 +12,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 class CardsViewModel : ViewModel() {
 
-    private val repo = BaralhoBackendRepository()  // GET /baralhos/{id} :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
+    private val repo = BaralhoBackendRepository()
     private var baralhoId: String = ""
     private var _wrongAwnser : Boolean = false
 
@@ -55,6 +56,9 @@ class CardsViewModel : ViewModel() {
     private val _showSummary = MutableStateFlow(false)
     val showSummary: StateFlow<Boolean> = _showSummary.asStateFlow()
 
+    /**
+     * Busca as cartas do baralho e ordena pela proximaRevisao (da menor para a maior)
+     */
     fun fetchCards(baralhoId: String) {
         // grava o id para uso posterior
         this.baralhoId = baralhoId
@@ -62,12 +66,30 @@ class CardsViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val baralho = repo.obter(baralhoId)    // GET /baralhos/{id}
-                _cards.value = baralho.cartas
-                _totalCards.value = baralho.cartas.size
+
+                // Ordenar cartas pela proximaRevisao (da mais próxima para a mais distante)
+                val sortedCards = baralho.cartas.sortedBy {
+                    parseIsoDate(it.proximaRevisao)
+                }
+
+                _cards.value = sortedCards
+                _totalCards.value = sortedCards.size
                 resetSession()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        }
+    }
+
+    /**
+     * Converte string ISO para Date para permitir comparação/ordenação
+     */
+    private fun parseIsoDate(isoDateString: String): Date {
+        return try {
+            val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+            format.parse(isoDateString) ?: Date()
+        } catch (e: Exception) {
+            Date() // Em caso de erro, retorna data atual
         }
     }
 
@@ -77,6 +99,8 @@ class CardsViewModel : ViewModel() {
         _currentCard.value?.let { card ->
             if (answerIndex == card.resposta) {
                 _correctAnswers.value += 1
+            } else {
+                _wrongAwnser = true
             }
         }
         _showDifficultyDialog.value = true
@@ -97,10 +121,12 @@ class CardsViewModel : ViewModel() {
             Difficulty.IMPOSSIBLE -> 24.0
         }
 
-        if(_wrongAwnser)
+        if(_wrongAwnser) {
             hours *= 0.5
+            _wrongAwnser = false // Resetar para próxima carta
+        }
 
-        val cal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, hours.toInt()) }
+        val cal = Calendar.getInstance().apply { add(Calendar.HOUR, hours.toInt()) }
         val isoFmt = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
         val nextRev = isoFmt.format(cal.time)
 
@@ -109,16 +135,44 @@ class CardsViewModel : ViewModel() {
         val updatedList = _cards.value.toMutableList().apply {
             this[idx] = updatedCard
         }
-        _cards.value = updatedList
-        _currentCard.value = updatedCard
+
+        // Reordenar a lista após atualização
+        val sortedList = updatedList.sortedBy { parseIsoDate(it.proximaRevisao) }
+        _cards.value = sortedList
+
+        // Encontrar o novo índice da carta atual após ordenação
+        val newIndex = sortedList.indexOf(updatedCard)
+        if (newIndex >= 0) {
+            _cardIndex.value = newIndex
+            _currentCard.value = updatedCard
+        }
 
         // 3) persiste no backend o deck inteiro
         viewModelScope.launch {
-            baralhoId?.let { id ->
-                val baralho = repo.obter(id)
-                val persisted = repo.atualizar(baralho.copy(cartas = updatedList))  // PUT /baralhos/{id} :contentReference[oaicite:3]{index=3}:contentReference[oaicite:4]{index=4}
-                _cards.value = persisted.cartas
-                _currentCard.value = persisted.cartas.getOrNull(idx)
+            try {
+                val baralho = repo.obter(baralhoId)
+                // Atualize a carta no baralho original
+                val updatedBaralhoCards = baralho.cartas.toMutableList()
+                val originalCardIndex = updatedBaralhoCards.indexOfFirst { it.pergunta == current.pergunta }
+                if (originalCardIndex >= 0) {
+                    updatedBaralhoCards[originalCardIndex] = updatedCard
+                }
+
+                val updatedBaralho = baralho.copy(cartas = updatedBaralhoCards)
+                val persisted = repo.atualizar(updatedBaralho)  // PUT /baralhos/{id}
+
+                // Reordenar novamente após persistência
+                val persistedSorted = persisted.cartas.sortedBy { parseIsoDate(it.proximaRevisao) }
+                _cards.value = persistedSorted
+
+                // Reajustar o índice e a carta atual
+                val persistedCurrentIndex = persistedSorted.indexOfFirst { it.pergunta == updatedCard.pergunta }
+                if (persistedCurrentIndex >= 0) {
+                    _cardIndex.value = persistedCurrentIndex
+                    _currentCard.value = persistedSorted[persistedCurrentIndex]
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
@@ -144,5 +198,6 @@ class CardsViewModel : ViewModel() {
         _isAnswerRevealed.value = false
         _selectedDifficulty.value = null
         _showSummary.value = false
+        _wrongAwnser = false
     }
 }

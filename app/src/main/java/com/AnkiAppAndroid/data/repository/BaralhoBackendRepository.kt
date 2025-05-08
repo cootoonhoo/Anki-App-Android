@@ -8,15 +8,13 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 
 class BaralhoBackendRepository(
-    private val service: BaralhoService = BaralhoService          // injete via DI se quiser
+    private val service: BaralhoService = BaralhoService
 ) {
 
-    /*----------- LISTAGEM (Flow) -----------*/
     fun listarFlow(): Flow<List<BaralhoBancoDados>> = flow {
-        emit(service.getAll())          // dispara GET e emite
+        emit(service.getAll())
     }.flowOn(Dispatchers.IO)
 
-    /*----------- CRUD simples (suspend) ----*/
     suspend fun listar(): List<BaralhoBancoDados> =
         service.getAll()
 
