@@ -18,6 +18,7 @@ class CardsViewModel : ViewModel() {
 
     private val repo = BaralhoBackendRepository()  // GET /baralhos/{id} :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
     private var baralhoId: String = ""
+    private var _wrongAwnser : Boolean = false
 
     // Lista completa de cartas do baralho
     private val _cards = MutableStateFlow<List<Card>>(emptyList())
@@ -89,13 +90,17 @@ class CardsViewModel : ViewModel() {
         val current = _currentCard.value ?: return
 
         // 1) calcula nova data ISO
-        val days = when (difficulty) {
-            Difficulty.EASY   -> 1
-            Difficulty.MEDIUM -> 2
-            Difficulty.HARD   -> 3
-            Difficulty.IMPOSSIBLE -> 4
+        var hours = when (difficulty) {
+            Difficulty.EASY   -> 96.0
+            Difficulty.MEDIUM -> 72.0
+            Difficulty.HARD   -> 48.0
+            Difficulty.IMPOSSIBLE -> 24.0
         }
-        val cal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, days) }
+
+        if(_wrongAwnser)
+            hours *= 0.5
+
+        val cal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, hours.toInt()) }
         val isoFmt = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
         val nextRev = isoFmt.format(cal.time)
 

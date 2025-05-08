@@ -9,7 +9,7 @@ import com.AnkiAppAndroid.data.dao.UsuarioDao
 import com.AnkiAppAndroid.data.model.Location
 import com.AnkiAppAndroid.data.model.Usuario
 
-@Database(entities = [Location::class, Usuario::class], version = 4, exportSchema = false)
+@Database(entities = [Location::class, Usuario::class], version = 5, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun locationDao(): LocationDao
