@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditBaralhoScreen(
-    baralhoId: Long,
+    baralhoId: String,
     navController: NavController,
     baralhoViewModel: BaralhoViewModel,
     locationViewModel: LocationViewModel,
@@ -45,7 +45,18 @@ fun EditBaralhoScreen(
 
     LaunchedEffect(baralhoId) {
         baralhoViewModel.fetchBaralhoById(baralhoId)
-        editViewModel.loadMockBaralho()
+        editViewModel.loadBaralho(baralhoId)
+    }
+
+    val saveEvent by editViewModel.saveEvent.collectAsState()
+    LaunchedEffect(saveEvent) {
+        if (saveEvent) {
+            // opcional: recarregar na tela anterior
+            baralhoViewModel.fetchBaralhoById(baralhoId)
+            // volta para a lista de baralhos
+            navController.popBackStack()
+            editViewModel.clearSaveEvent()
+        }
     }
 
     LaunchedEffect(snackbarMessage) {
@@ -81,7 +92,7 @@ fun EditBaralhoScreen(
                     IconButton(
                         onClick = {
                             baralho?.let {
-                                baralhoViewModel.deleteBaralho(it)
+                                baralhoViewModel.deleteBaralho(it.id)
                                 navController.navigate(Screen.Home.route) {
                                     popUpTo(Screen.Home.route) { inclusive = true }
                                 }

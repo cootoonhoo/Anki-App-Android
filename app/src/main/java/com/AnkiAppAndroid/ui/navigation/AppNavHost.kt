@@ -48,11 +48,14 @@ fun AppNavHost(
             route = Screen.CardsScreen.route,
             arguments = listOf(
                 navArgument("baralhoId") {
-                    type = NavType.LongType
+                    type = NavType.StringType
                 }
             )
         ) { backStackEntry ->
-            val baralhoId = backStackEntry.arguments?.getLong("baralhoId") ?: 0L
+            // agora pegamos a String
+            val baralhoId = backStackEntry.arguments?.getString("baralhoId")
+                ?: error("baralhoId não encontrado na rota")
+
             val cardsViewModel: CardsViewModel = viewModel()
             CardsScreen(
                 baralhoId = baralhoId,
@@ -66,11 +69,12 @@ fun AppNavHost(
             route = Screen.EditBaralhoScreen.route,
             arguments = listOf(
                 navArgument("baralhoId") {
-                    type = NavType.LongType
+                    type = NavType.StringType
                 }
             )
         ) { backStackEntry ->
-            val baralhoId = backStackEntry.arguments?.getLong("baralhoId") ?: 0L
+            val baralhoId = backStackEntry.arguments?.getString("baralhoId")
+                ?: error("baralhoId não encontrado na rota")
             EditBaralhoScreen(
                 baralhoId = baralhoId,
                 navController = navController,

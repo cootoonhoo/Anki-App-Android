@@ -1,9 +1,10 @@
 package com.AnkiAppAndroid.data.model
 
 import java.util.UUID
-import kotlin.uuid.ExperimentalUuidApi
 
-data class BaralhoBancoDados @OptIn(ExperimentalUuidApi::class) constructor(
+data class BaralhoBancoDados(
+    val id: String,
+    val titulo: String,
     val cartas: MutableList<Card>,
-    val idUsuario: UUID
+    val idUsuario: String
 )

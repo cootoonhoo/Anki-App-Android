@@ -1,5 +1,6 @@
 package com.AnkiAppAndroid.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,7 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.AnkiAppAndroid.data.model.Baralho
+import com.AnkiAppAndroid.data.model.BaralhoBancoDados
 import com.AnkiAppAndroid.ui.components.NearbyLocationIndicator
 import com.AnkiAppAndroid.ui.viewmodel.BaralhoViewModel
 
@@ -46,11 +47,13 @@ import com.AnkiAppAndroid.ui.viewmodel.BaralhoViewModel
 @Composable
 fun HomeScreen(
     viewModel: BaralhoViewModel,
-    onBaralhoClick: (Long) -> Unit,
-    onEditClick: (Long) -> Unit,
+    onBaralhoClick: (String) -> Unit,
+    onEditClick: (String) -> Unit,
     onLocationClick: () -> Unit
 ) {
     val baralhos by viewModel.baralhos.collectAsState()
+    Log.d("BaralhoService", "Resposta do backend na lista: $baralhos")
+
     val isDialogOpen by viewModel.isDialogOpen.collectAsState()
     val currentNearbyLocation by viewModel.currentNearbyLocation.collectAsState()
 
@@ -126,7 +129,7 @@ fun HomeScreen(
 
 @Composable
 fun BaralhoItem(
-    baralho: Baralho,
+    baralho: BaralhoBancoDados,
     onClick: () -> Unit,
     onEditClick: () -> Unit
 ) {
